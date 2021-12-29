@@ -17,5 +17,10 @@
 #ifndef BAKU_SRC_CPIO_COMPRESS_H_
 #define BAKU_SRC_CPIO_COMPRESS_H_
 
-#endif //BAKU_SRC_CPIO_COMPRESS_H_
+#include <stdio.h>
 
+void *CompressFiles(const char *const archive_path,
+                    const char **const file_paths,
+                    unsigned char files_count);
+
+#endif //BAKU_SRC_CPIO_COMPRESS_H_
