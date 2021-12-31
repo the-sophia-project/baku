@@ -82,22 +82,16 @@ CpioHeader HeaderFromFileStatus(const char *const file_path) {
   return cpio_header;
 }
 
-
 void *AppendRecordToFile(const CpioHeader cpio_header,
                          const char *const filename,
                          const FILE *source,
                          FILE *destination) {
 
-  size_t filename_size = strlen(filename);
-
   fwrite(&cpio_header, 1, sizeof(cpio_header), destination);
   fwrite(filename, sizeof(filename[0]), strlen(filename) + 1, destination);
 
-  unsigned char front_padding = 4 - (sizeof(cpio_header) + filename_size + 1) % 4;
-  if (front_padding % 4 == 0)
-    front_padding = 0;
-  else
-  {
+  unsigned char front_padding = CalculateFrontPadding(cpio_header, strlen(filename) + 1);
+  if (front_padding) {
     unsigned char *padding = calloc(front_padding, sizeof(unsigned char));
     fwrite(padding, sizeof(unsigned char), front_padding, destination);
     free(padding);
@@ -109,16 +103,13 @@ void *AppendRecordToFile(const CpioHeader cpio_header,
     fstat(source->_fileno, &file_status);
     long filesize = file_status.st_size;;
 
-    unsigned char rear_padding = 4 - filesize % 4;
-
-    if (rear_padding == 4)
-      rear_padding = 0;
+    unsigned char rear_padding = CalculateRearPadding(filesize);
 
     unsigned char *file_data = malloc(filesize);
     fread(file_data, 1, filesize, source);
 
     unsigned char
-        *file_data_with_padding = malloc( filesize + rear_padding);
+        *file_data_with_padding = malloc(filesize + rear_padding);
 
     if (file_data_with_padding == NULL) {
 
@@ -145,7 +136,7 @@ void *CompressFiles(const char *const archive_path,
   CpioHeader fileHeader = {0};
   FILE *archive = fopen(archive_path, "w+");
   for (unsigned char i = 0; i < files_count; i++) {
-    fileHeader =  HeaderFromFileStatus(file_paths);
+    fileHeader = HeaderFromFileStatus(file_paths);
     const unsigned char *const filename = basename(file_paths + i);
     FILE *source = fopen(file_paths + i, "r");
     AppendRecordToFile(fileHeader, filename, source, archive);
