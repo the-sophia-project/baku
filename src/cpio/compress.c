@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Michał Fudali
+ * Copyright © 2022 Michał Fudali
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -48,36 +48,40 @@ static char *CopyFileStatusToHeaderField(unsigned char *dest, unsigned char *sou
 CpioHeader HeaderFromFileStatus(const char *const file_path) {
   struct stat buf;
 
-  const size_t filename_size = strlen(basename(file_path));
+  //const char *file_name = basename(file_path);
 
   CpioHeader cpio_header = {0};
 
   if (lstat(file_path, &buf)) {
+    fprintf(stderr, "Error when processing %s \n", file_path);
     perror("Cannot get file status info");
-  } else {
-    strncpy(&cpio_header.c_magic, MAGIC, sizeof(cpio_header.c_magic + 1));
-
-    COPY_TO_HEADER(cpio_header, buf, ino);
-    COPY_TO_HEADER(cpio_header, buf, mode);
-    COPY_TO_HEADER(cpio_header, buf, uid);
-    COPY_TO_HEADER(cpio_header, buf, gid);
-    COPY_TO_HEADER(cpio_header, buf, nlink);
-    COPY_TO_HEADER(cpio_header, buf, mtime);
-    CopyFileStatusToHeaderField(&cpio_header.c_filesize, &buf.st_size);
-
-    unsigned long devmajor = major(buf.st_dev);
-    unsigned long devminor = minor(buf.st_dev);
-
-    unsigned long rdevmajor = major(buf.st_rdev);
-    unsigned long rdevminor = minor(buf.st_rdev);
-
-    CopyFileStatusToHeaderField(&cpio_header.c_devmajor, &devmajor);
-    CopyFileStatusToHeaderField(&cpio_header.c_devminor, &devminor);
-    CopyFileStatusToHeaderField(&cpio_header.c_rdevmajor, &rdevmajor);
-    CopyFileStatusToHeaderField(&cpio_header.c_rdevminor, &rdevminor);
-    CopyFileStatusToHeaderField(&cpio_header.c_namesize, &filename_size);
-    memset(&cpio_header.c_checksum, '0', sizeof(cpio_header.c_checksum));
+    return cpio_header;
   }
+
+  strncpy(&cpio_header.c_magic, MAGIC, sizeof(cpio_header.c_magic + 1));
+
+  COPY_TO_HEADER(cpio_header, buf, ino);
+  COPY_TO_HEADER(cpio_header, buf, mode);
+  COPY_TO_HEADER(cpio_header, buf, uid);
+  COPY_TO_HEADER(cpio_header, buf, gid);
+  COPY_TO_HEADER(cpio_header, buf, nlink);
+  COPY_TO_HEADER(cpio_header, buf, mtime);
+  CopyFileStatusToHeaderField(&cpio_header.c_filesize, &buf.st_size);
+
+  unsigned long devmajor = major(buf.st_dev);
+  unsigned long devminor = minor(buf.st_dev);
+
+  unsigned long rdevmajor = major(buf.st_rdev);
+  unsigned long rdevminor = minor(buf.st_rdev);
+
+  CopyFileStatusToHeaderField(&cpio_header.c_devmajor, &devmajor);
+  CopyFileStatusToHeaderField(&cpio_header.c_devminor, &devminor);
+  CopyFileStatusToHeaderField(&cpio_header.c_rdevmajor, &rdevmajor);
+  CopyFileStatusToHeaderField(&cpio_header.c_rdevminor, &rdevminor);
+
+  size_t pathsize = strlen(file_path);
+  CopyFileStatusToHeaderField(&cpio_header.c_namesize, &pathsize);
+  memset(&cpio_header.c_checksum, '0', sizeof(cpio_header.c_checksum));
 
   return cpio_header;
 }
@@ -101,12 +105,14 @@ void *AppendRecordToFile(const CpioHeader cpio_header,
 
     struct stat file_status = {0};
     fstat(source->_fileno, &file_status);
-    long filesize = file_status.st_size;;
+
+    if (S_ISDIR(file_status.st_mode)) {
+      return;
+    }
+
+    long filesize = file_status.st_size;
 
     unsigned char rear_padding = CalculateRearPadding(filesize);
-
-    unsigned char *file_data = malloc(filesize);
-    fread(file_data, 1, filesize, source);
 
     unsigned char
         *file_data_with_padding = malloc(filesize + rear_padding);
@@ -115,31 +121,37 @@ void *AppendRecordToFile(const CpioHeader cpio_header,
 
       perror("Error when using malloc");
     } else {
-      memcpy(file_data_with_padding, file_data, filesize);
+      fread(file_data_with_padding, 1, filesize, source);
       memset(file_data_with_padding + filesize, '\0', rear_padding);
 
       fwrite(file_data_with_padding,
-             sizeof(file_data_with_padding[0]),
+             1,
              filesize + rear_padding,
              destination);
     }
 
-    free(file_data);
     free(file_data_with_padding);
   }
 }
 
-void *CompressFiles(const char *const archive_path,
-                    const char **const file_paths,
-                    unsigned char files_count) {
+int *CompressFiles(const char *const archive_path,
+                   const char **const file_paths,
+                   unsigned char files_count) {
 
   CpioHeader fileHeader = {0};
   FILE *archive = fopen(archive_path, "w+");
   for (unsigned char i = 0; i < files_count; i++) {
-    fileHeader = HeaderFromFileStatus(file_paths);
-    const unsigned char *const filename = basename(file_paths + i);
-    FILE *source = fopen(file_paths + i, "r");
-    AppendRecordToFile(fileHeader, filename, source, archive);
+    const unsigned char *const file_path = file_paths[i];
+
+    fileHeader = HeaderFromFileStatus(file_path);
+
+    if (!memcmp((unsigned char *) &fileHeader.c_magic, "\0", 1)) {
+      continue;
+    }
+
+    FILE *source = fopen(file_path, "r");
+
+    AppendRecordToFile(fileHeader, file_path, source, archive);
     fclose(source);
     fileHeader = (CpioHeader) {0};
   }
@@ -151,4 +163,6 @@ void *CompressFiles(const char *const archive_path,
   AppendRecordToFile(fileHeader, "TRAILER!!!", NULL, archive);
 
   fclose(archive);
+
+  return 1;
 }

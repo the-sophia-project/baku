@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Michał Fudali
+ * Copyright © 2022 Michał Fudali
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -19,8 +19,8 @@
 
 #include <stdio.h>
 
-void *CompressFiles(const char *const archive_path,
-                    const char **const file_paths,
-                    unsigned char files_count);
+int *CompressFiles(const char *const archive_path,
+                   const char **const file_paths,
+                   unsigned char files_count);
 
 #endif //BAKU_SRC_CPIO_COMPRESS_H_

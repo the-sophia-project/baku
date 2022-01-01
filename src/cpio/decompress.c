@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Michał Fudali
+ * Copyright © 2022 Michał Fudali
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,9 +16,13 @@
 
 #include "decompress.h"
 
+#include <cpio.h>
+#include <dirent.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 
 #include "common.h"
@@ -45,8 +49,6 @@ typedef struct {
 void DecompressArchive(const char *dest_dir, const char *archive_path) {
 
   FILE *src = fopen(archive_path, "r");
-  struct stat file_status;
-  fstat(src->_fileno, &file_status);
 
   Record record;
 
@@ -55,7 +57,7 @@ void DecompressArchive(const char *dest_dir, const char *archive_path) {
     fread(&record.header_, 1, strlen(MAGIC), src);
 
     if (memcmp(&record.header_, MAGIC, strlen(MAGIC))) {
-      fprintf(stderr, "This is not an cpio SVR4 src.");
+      fprintf(stderr, "This is not an cpio SVR4 archive.");
       break;
     } else {
       for (int i = 0; i < FIELDS_IN_HEADER - 1; i++) {
@@ -71,27 +73,62 @@ void DecompressArchive(const char *dest_dir, const char *archive_path) {
       if (!strcmp(record.filename_, "TRAILER!!!"))
         break;
 
-      size_t n = strlen(dest_dir) + strlen(archive_path) + 2;
-      char *dest_file_path = malloc(n);
-      snprintf(dest_file_path, n, "%s/%s", dest_dir, record.filename_);
+      size_t n = strlen(dest_dir) + strlen(record.filename_) + 3;
+      char *dest_path = malloc(n);
+      snprintf(dest_path, n, "%s/%s", dest_dir, record.filename_);
 
-      FILE *dest = fopen(dest_file_path, "w");
-      free(dest_file_path);
+      long long file_mode = lstrtoll(&record.header_.c_mode, NULL, 16, sizeof(record.header_.c_mode));
+
+      DIR *dir;
+      FILE *file;
+      int fd;
+
+      char mode[2] = "w";
+      if (S_ISDIR(file_mode)) {
+        mkdir(dest_path, file_mode);
+        strcpy(mode, "r");
+      }
+
+      file = fopen(dest_path, mode);
+
+      if (file == NULL) {
+        perror("Error occurred when opening file for writing");
+        break;
+      }
+
+      free(dest_path);
+
+      fd = file->_fileno;
+
+      if (fchmod(fd, file_mode)) {
+        perror("Error occurred when giving file appropriate permissions");
+      }
+
+      //FIXME: According to the LSB, values specified in RPMTAGs should take precedence when installing the package
+      long long uid = lstrtoll(&record.header_.c_uid, NULL, 16, sizeof(record.header_.c_uid));
+      long long gid = lstrtoll(&record.header_.c_gid, NULL, 16, sizeof(record.header_.c_gid));
+      if (fchown(fd, uid, gid)) {
+        perror("Error occurred when changing file owner and group.");
+      }
 
       unsigned char front_padding = CalculateFrontPadding(record.header_, strlen(record.filename_) + 1);
       fseek(src, front_padding, SEEK_CUR);
 
-      long long filesize = lstrtoll(&record.header_.c_filesize, NULL, 16, 8);
+      if (!S_ISDIR(file_mode)) {
+        long long filesize = lstrtoll(&record.header_.c_filesize, NULL, 16, 8);
 
-      unsigned char *file_data = malloc(filesize);
-      fread(file_data, 1, filesize, src);
-      fwrite(file_data, 1, filesize, dest);
+        unsigned char *file_data = malloc(filesize);
+        fread(file_data, 1, filesize, src);
+        fwrite(file_data, 1, filesize, file);
 
-      free(file_data);
-      fclose(dest);
+        free(file_data);
 
-      unsigned char rear_padding = CalculateRearPadding(filesize);
-      fseek(src, rear_padding, SEEK_CUR);
+        unsigned char rear_padding = CalculateRearPadding(filesize);
+        fseek(src, rear_padding, SEEK_CUR);
+      }
+      fclose(file);
     }
   }
+
+  fclose(src);
 }
