@@ -19,8 +19,7 @@
 
 #include <stdio.h>
 
-int *CompressFiles(const char *const archive_path,
-                   const char **const file_paths,
-                   unsigned char files_count);
+int *CompressDirectoryContent(const char *archive_path,
+                              const char *source_dir);
 
 #endif //BAKU_SRC_CPIO_COMPRESS_H_

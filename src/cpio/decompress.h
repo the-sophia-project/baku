@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Michał Fudali
+ * Copyright © 2022 Michał Fudali
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -17,6 +17,6 @@
 #ifndef BAKU_SRC_CPIO_DECOMPRESS_H_
 #define BAKU_SRC_CPIO_DECOMPRESS_H_
 
-void DecompressArchive(const char *dest_dir, const char *archive_path);
+void DecompressArchive(const char *prefix, const char *archive_path);
 
 #endif //BAKU_SRC_CPIO_DECOMPRESS_H_
