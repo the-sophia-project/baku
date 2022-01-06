@@ -55,9 +55,9 @@ typedef struct {
   const char path_[PATH_SIZE + 1];
 } Inode;
 
-void DecompressArchive(const char *prefix, const char *archive_path) {
+void ExtractArchive(const char *dest, const char *archive) {
 
-  FILE *src = fopen(archive_path, "r");
+  FILE *src = fopen(archive, "r");
 
   Record record;
 
@@ -83,9 +83,9 @@ void DecompressArchive(const char *prefix, const char *archive_path) {
       if (!strcmp(record.filename_, "TRAILER!!!"))
         break;
 
-      size_t n = strlen(prefix) + strlen(record.filename_) + 3;
+      size_t n = strlen(dest) + strlen(record.filename_) + 3;
       char *dest_path = malloc(n);
-      snprintf(dest_path, n, "%s/%s", prefix, record.filename_);
+      snprintf(dest_path, n, "%s/%s", dest, record.filename_);
 
       long long file_mode = lstrtoll(&record.header_.c_mode, NULL, 16, sizeof(record.header_.c_mode));
       long long inode = lstrtoll(&record.header_.c_ino, NULL, 16, sizeof(record.header_.c_ino));

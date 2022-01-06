@@ -16,11 +16,13 @@
 
 #include "compress.h"
 
+#define _XOPEN_SOURCE 500
 #define __USE_XOPEN_EXTENDED
 
 #include <ftw.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 
@@ -153,12 +155,12 @@ int ProcessFile(const char *pathname, const struct stat *, int, struct FTW *ftw)
   return 0;
 }
 
-int *CompressDirectoryContent(const char *archive_path,
-                              const char *source_dir) {
+int *CreateArchive(const char *archive,
+                   const char *dir) {
 
-  archive = fopen(archive_path, "w+");
+  archive = fopen(archive, "w+");
 
-  nftw(source_dir, &ProcessFile, FD_LIMIT, FTW_PHYS);
+  nftw(dir, &ProcessFile, FD_LIMIT, FTW_PHYS);
 
   CpioHeader file_header = {0};
   memset(&file_header, '0', sizeof(file_header));

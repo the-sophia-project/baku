@@ -17,9 +17,7 @@
 #ifndef BAKU_SRC_CPIO_COMPRESS_H_
 #define BAKU_SRC_CPIO_COMPRESS_H_
 
-#include <stdio.h>
-
-int *CompressDirectoryContent(const char *archive_path,
-                              const char *source_dir);
+int *CreateArchive(const char *archive,
+                   const char *dir);
 
 #endif //BAKU_SRC_CPIO_COMPRESS_H_

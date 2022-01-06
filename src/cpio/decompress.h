@@ -17,6 +17,6 @@
 #ifndef BAKU_SRC_CPIO_DECOMPRESS_H_
 #define BAKU_SRC_CPIO_DECOMPRESS_H_
 
-void DecompressArchive(const char *prefix, const char *archive_path);
+void ExtractArchive(const char *dest, const char *archive);
 
 #endif //BAKU_SRC_CPIO_DECOMPRESS_H_
