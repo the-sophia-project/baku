@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Michał Fudali
+ * Copyright © 2022 Michał Fudali
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -14,8 +14,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef BAKU_SRC_CPIO_COMMON_H_
-#define BAKU_SRC_CPIO_COMMON_H_
+#ifndef BAKU_SRC_CPIO_CPIO_H_
+#define BAKU_SRC_CPIO_CPIO_H_
+
+#include <stdio.h>
 
 //MAGIC defined in POSIX header has bad value for us.
 #ifdef MAGIC
@@ -52,4 +54,4 @@ static inline unsigned char CalculateRearPadding(size_t filesize) {
   return padding_length == 4 ? 0 : padding_length;
 }
 
-#endif //BAKU_SRC_CPIO_COMMON_H_
+#endif //BAKU_SRC_CPIO_CPIO_H_

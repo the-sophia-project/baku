@@ -27,7 +27,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "common.h"
+#include "cpio.h"
 
 /// Limited strtoll
 /// \param n Number of characters to take account of

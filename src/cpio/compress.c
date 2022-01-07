@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
 
-#include "common.h"
+#include "cpio.h"
 
 #define FD_LIMIT 16
 

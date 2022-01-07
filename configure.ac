@@ -1,4 +1,6 @@
 AC_INIT([Baku], [0.1])
+LT_INIT()
+
 AC_CONFIG_SRCDIR([src])
 AM_INIT_AUTOMAKE
 
