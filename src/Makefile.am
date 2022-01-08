@@ -1,7 +1,8 @@
 SUBDIRS = cpio
 
 bin_PROGRAMS = baku
-baku_SOURCES = main.c install/install.c
+baku_SOURCES = main.c install/install.c database/query.c config/config.c
+nobase_include_HEADERS = install/install.h database/query.h config/config.h
 baku_LDADD = cpio/libcpio.la
 
 AUTOMAKE_OPTIONS = subdir-objects

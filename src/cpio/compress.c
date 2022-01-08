@@ -155,10 +155,10 @@ int ProcessFile(const char *pathname, const struct stat *, int, struct FTW *ftw)
   return 0;
 }
 
-int *CreateArchive(const char *archive,
+int *CreateArchive(const char *dest,
                    const char *dir) {
 
-  archive = fopen(archive, "w+");
+  archive = fopen(dest, "w+");
 
   nftw(dir, &ProcessFile, FD_LIMIT, FTW_PHYS);
 
@@ -170,7 +170,7 @@ int *CreateArchive(const char *archive,
   AppendRecordToFile(file_header, "TRAILER!!!", NULL, archive);
 
   fclose(archive);
-  archive = NULL;
+  dest = NULL;
 
   return 1;
 }

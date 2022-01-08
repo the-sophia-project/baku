@@ -14,19 +14,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef BAKU_SRC_DATABASE_QUERY_H_
+#define BAKU_SRC_DATABASE_QUERY_H_
 
-#include "install/install.h"
+#include <stdbool.h>
 
-int main(int argc, char *argv[]) {
+bool CheckIfInstalled(char *name);
 
-  if (argc < 3) {
-    printf("Baku package manager needs more arguments.\n");
-  } else {
-    if (!strcmp(argv[1], "-i")) {
-      printf("Beginning installation of %s.\n", argv[2]);
-      InstallPackage(argv[2]);
-    }
-  }
-}
+#endif //BAKU_SRC_DATABASE_QUERY_H_

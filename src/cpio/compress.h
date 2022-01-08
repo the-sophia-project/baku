@@ -17,7 +17,7 @@
 #ifndef BAKU_SRC_CPIO_COMPRESS_H_
 #define BAKU_SRC_CPIO_COMPRESS_H_
 
-int *CreateArchive(const char *archive,
+int *CreateArchive(const char *dest,
                    const char *dir);
 
 #endif //BAKU_SRC_CPIO_COMPRESS_H_

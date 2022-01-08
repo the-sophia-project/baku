@@ -14,19 +14,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <string.h>
+#include "query.h"
 
-#include "install/install.h"
+#include <stdbool.h>
 
-int main(int argc, char *argv[]) {
-
-  if (argc < 3) {
-    printf("Baku package manager needs more arguments.\n");
-  } else {
-    if (!strcmp(argv[1], "-i")) {
-      printf("Beginning installation of %s.\n", argv[2]);
-      InstallPackage(argv[2]);
-    }
-  }
-}
+bool CheckIfInstalled(char *name);

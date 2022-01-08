@@ -14,19 +14,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <string.h>
+#ifndef BAKU_SRC_CONFIG_CONFIG_H_
+#define BAKU_SRC_CONFIG_CONFIG_H_
 
-#include "install/install.h"
+#include <stdbool.h>
 
-int main(int argc, char *argv[]) {
+bool DoesConfigExist();
 
-  if (argc < 3) {
-    printf("Baku package manager needs more arguments.\n");
-  } else {
-    if (!strcmp(argv[1], "-i")) {
-      printf("Beginning installation of %s.\n", argv[2]);
-      InstallPackage(argv[2]);
-    }
-  }
-}
+char *GetValueByKey(char *key);
+
+#endif //BAKU_SRC_CONFIG_CONFIG_H_

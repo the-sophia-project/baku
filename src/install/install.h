@@ -17,4 +17,6 @@
 #ifndef BAKU_SRC_INSTALL_INSTALL_H_
 #define BAKU_SRC_INSTALL_INSTALL_H_
 
+void InstallPackage(char *path);
+
 #endif //BAKU_SRC_INSTALL_INSTALL_H_

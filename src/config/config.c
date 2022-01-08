@@ -14,19 +14,39 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
+
+#include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
+#include <wchar.h>
 
-#include "install/install.h"
+#define SYSTEM_WIDE_CONFIG "/etc/baku/baku.conf"
 
-int main(int argc, char *argv[]) {
+bool DoesConfigExist() {
+  FILE *config = fopen(SYSTEM_WIDE_CONFIG, "r");
 
-  if (argc < 3) {
-    printf("Baku package manager needs more arguments.\n");
-  } else {
-    if (!strcmp(argv[1], "-i")) {
-      printf("Beginning installation of %s.\n", argv[2]);
-      InstallPackage(argv[2]);
+  if (config == NULL) {
+    if (errno == ENOENT) {
+      return false;
     }
+  }
+
+  fclose(config);
+  return true;
+}
+
+char *GetValueByKey(char *key) {
+  FILE *config = fopen(SYSTEM_WIDE_CONFIG, "r");
+  if (!config) {
+    return NULL;
+  }
+
+  wchar_t *buffer = NULL;
+  while (!feof(config)) {
+    getline(&buffer, 0, config);
+    printf("%s", buffer);
+    buffer = NULL;
+    break;
   }
 }

@@ -17,7 +17,8 @@
 #include "install.h"
 
 #include "../file_format.h"
+#include "../database/query.h"
 
-void InstallPackage() {
+void InstallPackage(char *path) {
 
 }
